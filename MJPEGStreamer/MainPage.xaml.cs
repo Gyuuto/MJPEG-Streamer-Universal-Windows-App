@@ -71,6 +71,7 @@ namespace MJPEGStreamer
         private Timer _periodicTimer;
         private const int _defaultPort = 8000;
         private MediaFrameSource _mediaFrameSource;
+        private bool _is_mirror = false;
 
         #region Constructor, lifecycle and navigation
 
@@ -214,6 +215,14 @@ namespace MJPEGStreamer
                 id = "********no setting*****";
             }
 
+            var is_mirror = _localSettings.Values["IsMirror"];
+            if (is_mirror == null ) {
+                _is_mirror = false;
+            } else {
+                _is_mirror = (bool)is_mirror;
+            }
+
+
             Debug.WriteLine("_allVideoDevices read");
 
             _currentVideoDeviceIndex = -1;
@@ -298,7 +307,8 @@ namespace MJPEGStreamer
                 BitmapEncoder bitmapEncoder = await BitmapEncoder.CreateAsync(BitmapEncoder.JpegEncoderId, jpegStream, propertySet);
 
                 bitmapEncoder.BitmapTransform.Rotation = IntToBitmapRotation(_videoRotation);
-
+                if (_is_mirror)
+                    bitmapEncoder.BitmapTransform.Flip = BitmapFlip.Horizontal;
 
 
                 bitmapEncoder.SetSoftwareBitmap(softwareBitmap);
@@ -679,6 +689,11 @@ namespace MJPEGStreamer
 
         }
 
+        private void MirrorButton_Clicked (object sender, RoutedEventArgs e)
+        {
+
+        }
+
         private async void WebcamButton_ClickedAsync(object sender, RoutedEventArgs e)
         {
             if (_allVideoDevices == null)
@@ -822,7 +837,8 @@ namespace MJPEGStreamer
 
         private void CameraComboBox_LostFocus(object sender, RoutedEventArgs e)
         {
-
+            _is_mirror = !_is_mirror;
+            _localSettings.Values["IsMirror"] = _is_mirror;
         }
 
         private void CameraComboBox_DropDownOpened(object sender, object e)
